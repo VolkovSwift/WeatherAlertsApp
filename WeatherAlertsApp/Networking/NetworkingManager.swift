@@ -4,7 +4,6 @@ protocol NetworkingManagerProtocol {
     func request<T: Codable>(endpoint: API, completion: @escaping (Result<T, NetworkingError>) -> Void)
 }
 
-
 final class NetworkingManager: NetworkingManagerProtocol {
     private func buildURL(endpoint: API) -> URLComponents {
         var components = URLComponents()
@@ -46,30 +45,13 @@ final class NetworkingManager: NetworkingManagerProtocol {
                 return
             }
             
-            self.logResponse(for: data) //Prints to console response
             do {
                 let responseObject = try JSONDecoder().decode(T.self, from: data)
                 completion(.success(responseObject))
-            } catch let DecodingError.dataCorrupted(context) { //Prints to console different type of errors
-//                print(context)
-            } catch let DecodingError.keyNotFound(key, context) {
-//                print("Key '\(key)' not found:", context.debugDescription)
-//                print("codingPath:", context.codingPath)
-            } catch let DecodingError.valueNotFound(value, context) {
-//                print("Value '\(value)' not found:", context.debugDescription)
-//                print("codingPath:", context.codingPath)
-            } catch let DecodingError.typeMismatch(type, context) {
-//                print("Type '\(type)' mismatch:", context.debugDescription)
-//                print("codingPath:", context.codingPath)
             } catch {
-//                print("error: ", error)
+                completion(.failure(.invalidData))
             }
         }
         dataTask.resume()
-    }
-    
-    func logResponse(for data: Data) {
-        let jsonData = try? JSONSerialization.jsonObject(with: data)
-//        print(String(describing: jsonData))
     }
 }

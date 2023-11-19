@@ -1,8 +1,9 @@
-//
-//  UIImageView+Extensions.swift
-//  WeatherAlertsApp
-//
-//  Created by Uladislau Volkau on 11/16/23.
-//
+import UIKit
+import Kingfisher
 
-import Foundation
+extension UIImageView {
+    func setImage(withURL url: URL?, placeholder: UIImage? = UIImage(named: "placeholderImage")) {
+        self.kf.indicatorType = .activity
+        self.kf.setImage(with: url, placeholder: placeholder)
+    }
+}

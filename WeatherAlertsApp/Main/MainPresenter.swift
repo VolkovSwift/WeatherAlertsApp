@@ -10,7 +10,7 @@ final class MainPresenter: MainPresenterProtocol {
     
     // MARK: - Private properties
     
-    let networkingManager: NetworkingManagerProtocol
+    private let networkingManager: NetworkingManagerProtocol
     
     // MARK: - Initialization
     
@@ -21,10 +21,11 @@ final class MainPresenter: MainPresenterProtocol {
     // MARK: - Internal methods
     
     func getWeatherAlerts() {
-        networkingManager.request(endpoint: WeatherAPI.alerts) { [weak self] (result: Result<Welcome, NetworkingError>) in
+        networkingManager.request(endpoint: WeatherAPI.alerts) { [weak self] (result: Result<DataResponse, NetworkingError>) in
             switch result {
             case .success(let model):
                 let models = model.features.map { $0.properties }
+                print(models)
                 self?.viewDelegate?.loadingProcessed(result: .success(models))
             case .failure(let error):
                 self?.viewDelegate?.loadingProcessed(result: .failure(error))

@@ -1,8 +1,3 @@
-//
-//  Constants.swift
-//  WeatherAlertsApp
-//
-//  Created by Uladislau Volkau on 11/18/23.
-//
-
-import Foundation
+enum Constants {
+    static let imageURL = "https://picsum.photos/1000"
+}

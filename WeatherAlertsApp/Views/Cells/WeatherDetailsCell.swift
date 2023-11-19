@@ -9,7 +9,6 @@ final class WeatherDetailsCell: UITableViewCell {
     private struct Size {
         static let mainStackViewPadding: CGFloat = 12
         static let mainStackViewSpacing: CGFloat = 14
-        static let logoImageHeight: CGFloat = 80
         static let logoImageWidth: CGFloat = 80
     }
     
@@ -19,7 +18,6 @@ final class WeatherDetailsCell: UITableViewCell {
         let stackView = UIStackView()
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .horizontal
-        stackView.contentMode = .center
         stackView.distribution = .fillProportionally
         stackView.spacing = Size.mainStackViewSpacing
         return stackView
@@ -28,7 +26,7 @@ final class WeatherDetailsCell: UITableViewCell {
     private let verticalInfoStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
-        stackView.distribution = .fillProportionally
+        stackView.distribution = .equalSpacing
         return stackView
     }()
     
@@ -36,7 +34,6 @@ final class WeatherDetailsCell: UITableViewCell {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
         imageView.widthAnchor.constraint(equalToConstant: Size.logoImageWidth).isActive = true
-        imageView.heightAnchor.constraint(equalToConstant: Size.logoImageHeight).isActive = true
         return imageView
     }()
     
@@ -45,8 +42,6 @@ final class WeatherDetailsCell: UITableViewCell {
         label.textColor = .black
         label.textAlignment = .left
         label.font = UIFont.systemFont(ofSize: 15)
-//        label.font = .interstateRegular(of: 15.0)
-//        label.textColor = .hex_4A4A4A_100
         return label
     }()
 
@@ -85,7 +80,6 @@ final class WeatherDetailsCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupLayout()
     }
-    
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -96,6 +90,7 @@ final class WeatherDetailsCell: UITableViewCell {
         logoImage.image = nil
         titleLabel.text = nil
         startDateLabel.text = nil
+        endDateLabel.text = nil
         sourceNameLabel.text = nil
         durationLabel.text = nil
     }
@@ -103,44 +98,52 @@ final class WeatherDetailsCell: UITableViewCell {
     // MARK: - Internal methods
     
     func configure(with model: WeatherAlertModel) {
-        guard let startDate = model.startDate?.convertDateMonthDayYear(),
-        let endDate = model.endDate?.convertDateMonthDayYear() else { return }
-        
-        logoImage.loadImage(fromURL: URL(string: "https://picsum.photos/1000")!, identifier: model.id)
-        
-//        logoImage.setImage(withURL: URL(string: "https://picsum.photos/1000"))
-        titleLabel.text = model.event
-        startDateLabel.text = "START DATE: \(startDate)"
-        endDateLabel.text = "END DATE: \(endDate)"
-        sourceNameLabel.text = "SOURCE: \(model.senderName)"
-        durationLabel.text = model.calculateDuration() ?? ""
+        configureLogoImage(with: model)
+        configureLabels(with: model)
+        configureStartDateLabel(with: model)
+        configureEndDateLabel(with: model)
     }
-
+    
     // MARK: - Private methods
     
+    private func configureLogoImage(with model: WeatherAlertModel) {
+        let url = URL(string: "\(Constants.imageURL)?\(model.id)")
+        logoImage.setImage(withURL: url)
+    }
+    
+    private func configureStartDateLabel(with model: WeatherAlertModel) {
+        guard let startDate = model.startDate?.convertDateMonthDayYear() else { return }
+        startDateLabel.text = "START DATE: \(startDate)"
+    }
+    
+    private func configureEndDateLabel(with model: WeatherAlertModel) {
+        guard let endDate = model.endDate?.convertDateMonthDayYear() else { return }
+        endDateLabel.text = "END DATE: \(endDate)"
+    }
+    
+    private func configureLabels(with model: WeatherAlertModel) {
+        titleLabel.text = model.event
+        sourceNameLabel.text = "SOURCE: \(model.senderName)"
+        guard let startDate = model.startDate,
+              let endDate = model.endDate,
+              let duration = startDate.getDuration(to: endDate) else { return }
+        durationLabel.text = duration
+    }
+    
     private func setupLayout() {
-        selectionStyle = .none
-        clipsToBounds = true
         setupVerticalInfoStackViewLayout()
         setupMainStackViewLayout()
     }
     
     private func setupVerticalInfoStackViewLayout() {
-        verticalInfoStackView.addArrangedSubview(titleLabel)
-        verticalInfoStackView.addArrangedSubview(startDateLabel)
-        verticalInfoStackView.addArrangedSubview(endDateLabel)
-        
-        verticalInfoStackView.addArrangedSubview(sourceNameLabel)
-        verticalInfoStackView.addArrangedSubview(durationLabel)
-
-//        verticalInfoStackView.setCustomSpacing(6, after: titleLabel)
-//        verticalInfoStackView.setCustomSpacing(6, after: expirationDateLabel)
+        [titleLabel, startDateLabel, endDateLabel, durationLabel, sourceNameLabel].forEach { verticalInfoStackView.addArrangedSubview($0)
+        }
     }
     
     private func setupMainStackViewLayout() {
+        contentView.addSubview(mainStackView)
         mainStackView.addArrangedSubview(logoImage)
         mainStackView.addArrangedSubview(verticalInfoStackView)
-        contentView.addSubview(mainStackView)
         mainStackView.pinToSuperView(with: Size.mainStackViewPadding)
     }
 }

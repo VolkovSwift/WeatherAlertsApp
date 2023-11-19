@@ -8,15 +8,16 @@ final class MainViewController: UIViewController, Loadable, ErrorPresentable {
     
     // MARK: - Private properties
     
-    private var models: [WeatherAlertModel] = []
+    private var items: [WeatherAlertModel] = []
     private let presenter: MainPresenterProtocol
     
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         view.addSubview(tableView)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.allowsSelection = false
+        tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.register(WeatherDetailsCell.self, forCellReuseIdentifier: WeatherDetailsCell.reuseID)
         return tableView
     }()
@@ -34,8 +35,8 @@ final class MainViewController: UIViewController, Loadable, ErrorPresentable {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.pinToSuperView()
         showLoader()
+        tableView.pinToSuperView()
         presenter.getWeatherAlerts()
     }
 }
@@ -43,13 +44,15 @@ final class MainViewController: UIViewController, Loadable, ErrorPresentable {
 // MARK: - UITableViewDataSource & UITableViewDelegate
 extension MainViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return models.count
+        return items.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: WeatherDetailsCell.reuseID,
-                                                       for: indexPath) as? WeatherDetailsCell else { return UITableViewCell() }
-        let item = models[indexPath.row]
+                                                       for: indexPath) as? WeatherDetailsCell else {
+            return UITableViewCell()
+        }
+        let item = items[indexPath.row]
         cell.configure(with: item)
         return cell
     }
@@ -59,15 +62,14 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate {
     }
 }
 
-
 // MARK: - MainViewDelegate
 extension MainViewController: MainViewDelegate {
     func loadingProcessed(result: Result<[WeatherAlertModel], NetworkingError>) {
         DispatchQueue.main.async {
             self.hideLoader()
             switch result {
-            case .success(let response):
-                self.models = response
+            case .success(let items):
+                self.items = items
                 self.tableView.reloadData()
             case .failure(let error):
                 self.showAlert(with: error)
@@ -75,4 +77,3 @@ extension MainViewController: MainViewDelegate {
         }
     }
 }
-
